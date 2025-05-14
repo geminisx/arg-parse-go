@@ -1,0 +1,44 @@
+package main
+
+//top level structures
+type Tree struct {
+	Root     *Root
+	Cursor   int
+	NodeFlag bool
+}
+
+type Root struct {
+	Command          Command
+	Value            []string
+	Nodes            []Node
+	Error            []error
+}
+
+type Node struct {
+	Command          Command
+	Value            []string
+	Error            []error
+}
+
+type Command struct {
+	Alias            []string
+	AcceptsCommands  AcceptsCommands
+	AcceptsValues    AcceptsValues
+	QualifiedName    string
+}
+
+//Parameter specifiers 
+type AcceptsCommands struct {
+	Bool bool
+	comandos []string
+}
+
+type AcceptsValues struct {
+	Bool bool
+	Types []Types
+}
+
+type Types struct {
+	typeString string
+	typeArrayString bool
+}
