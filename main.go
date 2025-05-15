@@ -7,35 +7,8 @@ import (
 	"slices"
 )
 
-func (structure *Tree) main(args []string) {
+func (structure *Tree) main(args []string, commands []Command) {
 	var rootFlag bool = false
-
-	a := Command{
-		Alias:          []string{"-a","--a"},
-		AcceptsCommands:  AcceptsCommands{Bool: true, comandos: []string{"-b","--b","-c","--c","-3"}},
-		AcceptsValues:  AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: true}}},
-		QualifiedName:  "a command",
-	}
-	b := Command{
-		Alias:          []string{"-b","--b"},
-		AcceptsCommands:  AcceptsCommands{Bool: true, comandos: []string{"-1","-2"}},
-		AcceptsValues:  AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: true}}},
-		QualifiedName:  "b command",
-	}
-	c := Command{
-		Alias:          []string{"-c","--c"},
-		AcceptsCommands:  AcceptsCommands{Bool: false, comandos: []string{}},
-		AcceptsValues:  AcceptsValues{Bool: false, Types: []Types{}},
-		QualifiedName:  "c command",
-	}
-	_3 := Command{
-		Alias:          []string{"-3","--3"},
-		AcceptsCommands:  AcceptsCommands{Bool: false, comandos: []string{}},
-		AcceptsValues:  AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: false}}},
-		QualifiedName:  "3 command",
-	}
-
-	commands := []Command{a, b, c,_3}
 
 	for _, i := range commands {
 		if (slices.Contains(i.Alias, args[0])){
@@ -109,7 +82,7 @@ func (structure *Tree) nodeParse(args []string, j Command) error {
 	nodeCommands        := node.Command.AcceptsCommands.comandos
 
 	for cursor := range args {
-		
+		//is root child able to hold values?
 		if subCommandValueLock {
 			if isCommand(args[cursor]) { if !isValidCommand(nodeCommands, args[cursor]) {
 				if slices.Contains(rootCommands, args[cursor]) {
@@ -136,10 +109,11 @@ func (structure *Tree) nodeParse(args []string, j Command) error {
 				node.Value = append(node.Value, args[cursor])
 			}
 		} else {
+			//does top level accept command?
 			if slices.Contains(rootCommands, args[cursor]) {
 				return nil
 			} else {
-				return nil
+				return fmt.Errorf("[ERROR] not valid command %s", args[cursor])
 			}
 		}
 		
@@ -150,9 +124,45 @@ func (structure *Tree) nodeParse(args []string, j Command) error {
 	return nil
 }
 
+func (structure *Tree) NodeErrorHandler(error error, node Node) error {
+	node.Error = append(node.Error, error)
+	structure.Root.Nodes = append(structure.Root.Nodes, node)
+	structure.NodeFlag = true
+	return error
+}
+
 func main() {
+	a := Command{
+		Alias:          []string{"-a","--a"},
+		AcceptsCommands:  AcceptsCommands{Bool: true, comandos: []string{"-b","--b","-c","--c","-3"}},
+		AcceptsValues:  AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: true}}},
+		QualifiedName:  "a command",
+	}
+	b := Command{
+		Alias:          []string{"-b","--b"},
+		AcceptsCommands:  AcceptsCommands{Bool: true, comandos: []string{"-1","-2"}},
+		AcceptsValues:  AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: true}}},
+		QualifiedName:  "b command",
+	}
+	c := Command{
+		Alias:          []string{"-c","--c"},
+		AcceptsCommands:  AcceptsCommands{Bool: false, comandos: []string{}},
+		AcceptsValues:  AcceptsValues{Bool: false, Types: []Types{}},
+		QualifiedName:  "c command",
+	}
+	_3 := Command{
+		Alias:          []string{"-3","--3"},
+		AcceptsCommands:  AcceptsCommands{Bool: false, comandos: []string{}},
+		AcceptsValues:  AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: false}}},
+		QualifiedName:  "3 command",
+	}
+
+	commands := []Command{a, b, c,_3}
+
 	x := Tree{}
-	x.main(os.Args[1:])
+	x.main(os.Args[1:],commands)
+
+	
 	
 	fmt.Println()
 	fmt.Println("Command: ", x.Root.Command.QualifiedName)
