@@ -23,7 +23,6 @@ type Node struct {
 type Command struct {
 	TLName 			 string
 	FQsubCommandName string
-	Alias            []string
 	AcceptsCommands  AcceptsCommands
 	AcceptsValues    AcceptsValues
 }
