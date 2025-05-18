@@ -30,7 +30,7 @@ type Command struct {
 //Parameter specifiers 
 type AcceptsCommands struct {
 	Bool bool
-	comandos []string
+	commands []string
 }
 
 type AcceptsValues struct {

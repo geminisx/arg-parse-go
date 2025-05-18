@@ -11,7 +11,7 @@ func (structure *Tree) main(args []string, commands []Command) {
 	var rootFlag bool = false
 
 	for _, i := range commands {
-		if (slices.Contains(i.Alias, args[0])){
+		if (i.TLName == args[0]){
 			structure.Root = &Root{Command: i}
 			rootFlag = true
 		}
@@ -21,12 +21,12 @@ func (structure *Tree) main(args []string, commands []Command) {
 		structure.NodeFlag = false
 
 		root     := structure.Root
-		rootName := structure.Root.Command.Alias
+		rootName := structure.Root.Command.TLName
 
 		acceptsCommands := root.Command.AcceptsCommands.Bool
 		acceptsValues   := root.Command.AcceptsValues.Bool
 
-		nodeSubCommands := root.Command.AcceptsCommands.comandos
+		nodeSubCommands := root.Command.AcceptsCommands.commands
 		
 		args = args[1:]
 
@@ -46,11 +46,11 @@ func (structure *Tree) main(args []string, commands []Command) {
 								break 
 							} 
 						}
-					} else { structure.RootErrorHandler(fmt.Errorf(errorStack[2], root.Command.Alias, args[cursor]));break }
-				} else { structure.RootErrorHandler(fmt.Errorf(errorStack[1], root.Command.Alias ));break }
+					} else { structure.RootErrorHandler(fmt.Errorf(errorStack[2], root.Command.TLName, args[cursor]));break }
+				} else { structure.RootErrorHandler(fmt.Errorf(errorStack[1], root.Command.TLName ));break }
 			} else { 
 				if !structure.NodeFlag && acceptsValues { root.Value = append(root.Value, args[cursor]) 
-				} else { if len(args) > 1 { structure.RootErrorHandler(fmt.Errorf(errorStack[3], structure.Root.Command.Alias));break } }
+				} else { if len(args) > 1 { structure.RootErrorHandler(fmt.Errorf(errorStack[3], structure.Root.Command.TLName));break } }
 			}
 		}
 	}
@@ -65,8 +65,8 @@ func (structure *Tree) nodeParse(args []string, j Command) error {
 	root := structure.Root
 	subCommandValueLock := node.Command.AcceptsValues.Bool
 	Types               := node.Command.AcceptsValues.Types
-	rootCommands        := root.Command.AcceptsCommands.comandos
-	nodeCommands        := node.Command.AcceptsCommands.comandos
+	rootCommands        := root.Command.AcceptsCommands.commands
+	nodeCommands        := node.Command.AcceptsCommands.commands
 
 	for cursor := range args {
 		//is root child able to hold values?
@@ -76,7 +76,7 @@ func (structure *Tree) nodeParse(args []string, j Command) error {
 					root.Nodes = append(root.Nodes, node)
 					return nil
 				}
-				error := fmt.Errorf("[ERROR] '%s' + '%s' concat, doesn't recognize: '%s'",root.Command.Alias,node.Command.Alias, args[cursor])
+				error := fmt.Errorf("[ERROR] '%s' + '%s' concat, doesn't recognize: '%s'",root.Command.TLName,node.Command.FQsubCommandName, args[cursor])
 				return structure.NodeErrorHandler(error,node)
 				} }
 				
@@ -90,7 +90,7 @@ func (structure *Tree) nodeParse(args []string, j Command) error {
 				}
 				// command doesn't accept arrays 
 				if !j.typeArrayString && len(node.Value) < 1 {
-					error := fmt.Errorf("[ERROR] Command '%s' doesn't accept array values of type '%s'", node.Command.Alias, j.typeString)
+					error := fmt.Errorf("[ERROR] Command '%s' doesn't accept array values of type '%s'", node.Command.FQsubCommandName, j.typeString)
 					return structure.NodeErrorHandler(error,node)
 				}
 				node.Value = append(node.Value, args[cursor])
@@ -123,33 +123,29 @@ func (structure *Tree) NodeErrorHandler(error error, node Node) error {
 }
 
 func main() {
-	// Its root, so can be top level command
-	// but function processes any data if possible so has to 
-	// process if root
-	// secure init node
-	// any gets node TL
-	// abstract create tree from node_instantiation
-	// forward data as aleph.
+	
+	//define rule for AcceptsCommands.comandos, items of type string must satisfy prefix '--' strictly
+
 	a := Command{
 		TLName           : "-a",
 		FQsubCommandName : "--a",
-		AcceptsCommands	 : AcceptsCommands{Bool: true, comandos: []string{"--b","--c","--3"}},
+		AcceptsCommands	 : AcceptsCommands{Bool: true, commands: []string{"--b","--c","--3"}},
 		AcceptsValues	 : AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: true}}},
 	}
 	b := Command{
 		TLName           : "-b",
 		FQsubCommandName : "--b",
-		AcceptsCommands  : AcceptsCommands{Bool: true, comandos: []string{"-1","--3"}},
+		AcceptsCommands  : AcceptsCommands{Bool: true, commands: []string{"--1","--3"}},
 		AcceptsValues    : AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: true}}},
 	}
 	c := Command{
 		FQsubCommandName : "--c",
-		AcceptsCommands  : AcceptsCommands{Bool: false, comandos: []string{}},
+		AcceptsCommands  : AcceptsCommands{Bool: false, commands: []string{}},
 		AcceptsValues    : AcceptsValues{Bool: false, Types: []Types{}},
 	}
 	_3 := Command{
 		FQsubCommandName : "--3",
-		AcceptsCommands  : AcceptsCommands{Bool: false, comandos: []string{}},
+		AcceptsCommands  : AcceptsCommands{Bool: false, commands: []string{}},
 		AcceptsValues    : AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: false}}},
 	}
 
