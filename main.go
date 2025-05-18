@@ -40,7 +40,7 @@ func (structure *Tree) main(args []string, commands []Command) {
 						// bug: design hierarchy systems
 						for _, j := range commands {
 							// first it matches cannot be intended command 
-							if (slices.Contains(j.Alias, args[cursor])) {
+							if (args[cursor] == j.FQsubCommandName) {
 								error := structure.nodeParse(args[cursor + 1:], j)
 								if error != nil { fmt.Println(error);return }
 								break 
@@ -131,28 +131,26 @@ func main() {
 	// abstract create tree from node_instantiation
 	// forward data as aleph.
 	a := Command{
-		Alias:           []string{"-a","--a"},
-		AcceptsCommands: AcceptsCommands{Bool: true, comandos: []string{"-b","--b","-c","--c","-3"}},
-		AcceptsValues:   AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: true}}},
-		QualifiedName:   "a command",
+		TLName           : "-a",
+		FQsubCommandName : "--a",
+		AcceptsCommands	 : AcceptsCommands{Bool: true, comandos: []string{"--b","--c","--3"}},
+		AcceptsValues	 : AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: true}}},
 	}
 	b := Command{
-		Alias:          []string{"-b","--b"},
-		AcceptsCommands:  AcceptsCommands{Bool: true, comandos: []string{"-1","-2"}},
-		AcceptsValues:  AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: true}}},
-		QualifiedName:  "b command",
+		TLName           : "-b",
+		FQsubCommandName : "--b",
+		AcceptsCommands  : AcceptsCommands{Bool: true, comandos: []string{"-1","--3"}},
+		AcceptsValues    : AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: true}}},
 	}
 	c := Command{
-		Alias:          []string{"-c","--c"},
-		AcceptsCommands:  AcceptsCommands{Bool: false, comandos: []string{}},
-		AcceptsValues:  AcceptsValues{Bool: false, Types: []Types{}},
-		QualifiedName:  "c command",
+		FQsubCommandName : "--c",
+		AcceptsCommands  : AcceptsCommands{Bool: false, comandos: []string{}},
+		AcceptsValues    : AcceptsValues{Bool: false, Types: []Types{}},
 	}
 	_3 := Command{
-		Alias:          []string{"-3","--3"},
-		AcceptsCommands:  AcceptsCommands{Bool: false, comandos: []string{}},
-		AcceptsValues:  AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: false}}},
-		QualifiedName:  "3 command",
+		FQsubCommandName : "--3",
+		AcceptsCommands  : AcceptsCommands{Bool: false, comandos: []string{}},
+		AcceptsValues    : AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: false}}},
 	}
 
 	commands := []Command{a, b, c,_3}
@@ -163,12 +161,12 @@ func main() {
 	
 	
 	fmt.Println()
-	fmt.Println("Command: ", x.Root.Command.QualifiedName)
+	fmt.Println("Command: ", x.Root.Command.FQsubCommandName)
 	fmt.Println("Values: ", x.Root.Value)
 	fmt.Println()
 	fmt.Println("---Node-Components---")
 	for _, i := range x.Root.Nodes {
-		fmt.Println("Node Command: ", i.Command.QualifiedName)
+		fmt.Println("Node Command: ", i.Command.FQsubCommandName)
 		fmt.Println("Node Values: ",  i.Value)
 		fmt.Println()
 	}
