@@ -20,52 +20,37 @@ func (structure *Tree) main(args []string, commands []Command) {
 	if rootFlag {
 		structure.NodeFlag = false
 
-		root := structure.Root
+		root     := structure.Root
+		rootName := structure.Root.Command.Alias
 
-		acceptsCommands := root.Command.AcceptsValues.Bool
-		acceptsValues   := root.Command.AcceptsCommands.Bool
+		acceptsCommands := root.Command.AcceptsCommands.Bool
+		acceptsValues   := root.Command.AcceptsValues.Bool
 
 		nodeSubCommands := root.Command.AcceptsCommands.comandos
 		
 		args = args[1:]
 
-		if !acceptsValues {
-			if len(args) > 1 {
-				if len(args) > 1 { 
-					structure.Root.Error = append(structure.Root.Error ,fmt.Errorf("[ERROR] '%s' does not accept values", structure.Root.Command.Alias))
-					return
-				} 
-			} 
-		}
+		if !acceptsValues && !acceptsCommands && len(args) > 1 { structure.RootErrorHandler(fmt.Errorf(errorStack[0], rootName)); return }
 
 		for structure.Cursor = 0; structure.Cursor < len(args); structure.Cursor++ {
 			cursor := structure.Cursor
 			if isCommand(args[cursor]) { 
 				if acceptsCommands {
-						if slices.Contains(nodeSubCommands, args[cursor]) { 
-							for _, j := range commands { 
-								if (slices.Contains(j.Alias, args[cursor])){
-									error := structure.nodeParse(args[cursor + 1:], j)
-									if error != nil { fmt.Println(error);return }
-									break 
-								}
+					if slices.Contains(nodeSubCommands, args[cursor]) { 
+						// bug: design hierarchy systems
+						for _, j := range commands {
+							// first it matches cannot be intended command 
+							if (slices.Contains(j.Alias, args[cursor])) {
+								error := structure.nodeParse(args[cursor + 1:], j)
+								if error != nil { fmt.Println(error);return }
+								break 
 							} 
-						} else { 
-							structure.Root.Error = append(structure.Root.Error, fmt.Errorf("[ERROR] '%s' does not accept '%s' as a subCommand", root.Command.Alias, args[cursor]))
-							break
 						}
-				}
+					} else { structure.RootErrorHandler(fmt.Errorf(errorStack[2], root.Command.Alias, args[cursor]));break }
+				} else { structure.RootErrorHandler(fmt.Errorf(errorStack[1], root.Command.Alias ));break }
 			} else { 
-				if !structure.NodeFlag { 
-					if acceptsValues { 
-						root.Value = append(root.Value, args[cursor]) 
-					} else { 
-						if len(args) > 1 { 
-							structure.Root.Error = append(structure.Root.Error ,fmt.Errorf("[ERROR] '%s' does not accept values", structure.Root.Command.Alias))
-							break
-						} 
-					} 
-				} 
+				if !structure.NodeFlag && acceptsValues { root.Value = append(root.Value, args[cursor]) 
+				} else { if len(args) > 1 { structure.RootErrorHandler(fmt.Errorf(errorStack[3], structure.Root.Command.Alias));break } }
 			}
 		}
 	}
@@ -73,9 +58,11 @@ func (structure *Tree) main(args []string, commands []Command) {
 }
 
 func (structure *Tree) nodeParse(args []string, j Command) error {
+	//structure handler ->+ accepts:
 	node := Node{Command: j}
+	
+	//readable
 	root := structure.Root
-
 	subCommandValueLock := node.Command.AcceptsValues.Bool
 	Types               := node.Command.AcceptsValues.Types
 	rootCommands        := root.Command.AcceptsCommands.comandos
@@ -124,6 +111,10 @@ func (structure *Tree) nodeParse(args []string, j Command) error {
 	return nil
 }
 
+func (structure *Tree) RootErrorHandler (error error) {
+	structure.Root.Error = append(structure.Root.Error, error)
+}
+
 func (structure *Tree) NodeErrorHandler(error error, node Node) error {
 	node.Error = append(node.Error, error)
 	structure.Root.Nodes = append(structure.Root.Nodes, node)
@@ -132,11 +123,18 @@ func (structure *Tree) NodeErrorHandler(error error, node Node) error {
 }
 
 func main() {
+	// Its root, so can be top level command
+	// but function processes any data if possible so has to 
+	// process if root
+	// secure init node
+	// any gets node TL
+	// abstract create tree from node_instantiation
+	// forward data as aleph.
 	a := Command{
-		Alias:          []string{"-a","--a"},
-		AcceptsCommands:  AcceptsCommands{Bool: true, comandos: []string{"-b","--b","-c","--c","-3"}},
-		AcceptsValues:  AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: true}}},
-		QualifiedName:  "a command",
+		Alias:           []string{"-a","--a"},
+		AcceptsCommands: AcceptsCommands{Bool: true, comandos: []string{"-b","--b","-c","--c","-3"}},
+		AcceptsValues:   AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: true}}},
+		QualifiedName:   "a command",
 	}
 	b := Command{
 		Alias:          []string{"-b","--b"},
