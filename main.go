@@ -7,18 +7,23 @@ import (
 	"slices"
 )
 
-func (structure *Tree) main(args []string, commands []Command) {
+func (s *Tree) main(args []string, commands []Command) {
 	var rootFlag bool = false
-
 	for _, i := range commands {
 		if (i.TLName == args[0]){
-			structure.Root = &Root{Command: i}
+			s.Root = &Root{Command: i}
 			rootFlag = true
 		}
 	}
 
 	if rootFlag {
-		structure.NodeFlag = false
+		s.Structuration(args, commands)
+	}
+	// can return structure if there are no errors
+}
+
+func (structure *Tree) Structuration(args []string, commands []Command) {
+	structure.NodeFlag = false
 
 		root     := structure.Root
 		rootName := structure.Root.Command.TLName
@@ -42,7 +47,7 @@ func (structure *Tree) main(args []string, commands []Command) {
 							// first it matches cannot be intended command 
 							if (args[cursor] == j.FQsubCommandName) {
 								error := structure.nodeParse(args[cursor + 1:], j)
-								if error != nil { fmt.Println(error);return }
+								if error != nil { fmt.Println(error);return  }
 								break 
 							} 
 						}
@@ -53,8 +58,6 @@ func (structure *Tree) main(args []string, commands []Command) {
 				} else { if len(args) > 1 { structure.RootErrorHandler(fmt.Errorf(errorStack[3], structure.Root.Command.TLName));break } }
 			}
 		}
-	}
-	// can return structure if there are no errors
 }
 
 func (structure *Tree) nodeParse(args []string, j Command) error {
@@ -76,7 +79,7 @@ func (structure *Tree) nodeParse(args []string, j Command) error {
 					root.Nodes = append(root.Nodes, node)
 					return nil
 				}
-				error := fmt.Errorf("[ERROR] '%s' + '%s' concat, doesn't recognize: '%s'",root.Command.TLName,node.Command.FQsubCommandName, args[cursor])
+				error := fmt.Errorf("[ERROR] '%s','%s' iteration doesn't recognize: '%s'",root.Command.TLName,node.Command.FQsubCommandName, args[cursor])
 				return structure.NodeErrorHandler(error,node)
 				} }
 				
@@ -100,10 +103,9 @@ func (structure *Tree) nodeParse(args []string, j Command) error {
 			if slices.Contains(rootCommands, args[cursor]) {
 				return nil
 			} else {
-				return fmt.Errorf("[ERROR] not valid command %s", args[cursor])
+				return fmt.Errorf("[ERROR] '%s' doesnt accept '%s' as a value",node.Command.FQsubCommandName, args[cursor])
 			}
 		}
-		
 	}
 
 	root.Nodes = append(root.Nodes, node)
@@ -111,7 +113,7 @@ func (structure *Tree) nodeParse(args []string, j Command) error {
 	return nil
 }
 
-func (structure *Tree) RootErrorHandler (error error) {
+func (structure *Tree) RootErrorHandler(error error) {
 	structure.Root.Error = append(structure.Root.Error, error)
 }
 
@@ -152,10 +154,16 @@ func main() {
 	commands := []Command{a, b, c,_3}
 
 	x := Tree{}
+	test := []string{"-a", "b", "c", "--b", "test", "--c", "test"}
+	x.main(test,commands)
+	debugTree(x)
 	x.main(os.Args[1:],commands)
+	debugTree(x)
+	//if error stack
+	
+}
 
-	
-	
+func debugTree(x Tree) {
 	fmt.Println()
 	fmt.Println("Command: ", x.Root.Command.FQsubCommandName)
 	fmt.Println("Values: ", x.Root.Value)
