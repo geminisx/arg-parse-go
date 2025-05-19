@@ -1,13 +1,12 @@
-package main
+package goat
 
 import (
 	"fmt"
-	"os"
 	"reflect"
 	"slices"
 )
 
-func (s *Tree) main(args []string, commands []Command) {
+func (s *Tree) Main(args []string, commands []Command) {
 	var rootFlag bool = false
 	for _, i := range commands {
 		if (i.TLName == args[0]){
@@ -17,12 +16,12 @@ func (s *Tree) main(args []string, commands []Command) {
 	}
 
 	if rootFlag {
-		s.Structuration(args, commands)
+		s.structuration(args, commands)
 	}
 	// can return structure if there are no errors
 }
 
-func (structure *Tree) Structuration(args []string, commands []Command) {
+func (structure *Tree) structuration(args []string, commands []Command) {
 	structure.NodeFlag = false
 
 		root     := structure.Root
@@ -122,67 +121,4 @@ func (structure *Tree) NodeErrorHandler(error error, node Node) error {
 	structure.Root.Nodes = append(structure.Root.Nodes, node)
 	structure.NodeFlag = true
 	return error
-}
-
-func main() {
-	
-	//define rule for AcceptsCommands.comandos, items of type string must satisfy prefix '--' strictly
-
-	a := Command{
-		TLName           : "-a",
-		FQsubCommandName : "--a",
-		AcceptsCommands	 : AcceptsCommands{Bool: true, commands: []string{"--b","--c","--3"}},
-		AcceptsValues	 : AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: true}}},
-	}
-	b := Command{
-		TLName           : "-b",
-		FQsubCommandName : "--b",
-		AcceptsCommands  : AcceptsCommands{Bool: true, commands: []string{"--1","--3"}},
-		AcceptsValues    : AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: true}}},
-	}
-	c := Command{
-		FQsubCommandName : "--c",
-		AcceptsCommands  : AcceptsCommands{Bool: false, commands: []string{}},
-		AcceptsValues    : AcceptsValues{Bool: false, Types: []Types{}},
-	}
-	_3 := Command{
-		FQsubCommandName : "--3",
-		AcceptsCommands  : AcceptsCommands{Bool: false, commands: []string{}},
-		AcceptsValues    : AcceptsValues{Bool: true, Types: []Types{{typeString: "string", typeArrayString: false}}},
-	}
-
-	commands := []Command{a, b, c,_3}
-
-	x := Tree{}
-	test := []string{"-a", "b", "c", "--b", "test", "--c", "test"}
-	x.main(test,commands)
-	debugTree(x)
-	x.main(os.Args[1:],commands)
-	debugTree(x)
-	//if error stack
-	
-}
-
-func debugTree(x Tree) {
-	fmt.Println()
-	fmt.Println("Command: ", x.Root.Command.FQsubCommandName)
-	fmt.Println("Values: ", x.Root.Value)
-	fmt.Println()
-	fmt.Println("---Node-Components---")
-	for _, i := range x.Root.Nodes {
-		fmt.Println("Node Command: ", i.Command.FQsubCommandName)
-		fmt.Println("Node Values: ",  i.Value)
-		fmt.Println()
-	}
-	fmt.Println("---ROOT-ERRORS--------")
-	for _, i := range x.Root.Error {
-		fmt.Println(i)
-	}
-
-	fmt.Println("---NODE-ERRORS--------")
-	for _, i := range x.Root.Nodes {
-		for _, j := range i.Error {
-			fmt.Println(j)
-		}
-	}
 }

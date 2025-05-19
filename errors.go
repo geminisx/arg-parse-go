@@ -1,4 +1,4 @@
-package main
+package goat
 
 var errorStack = map[int]string{
 	0:"[ERROR] '%s' is a standalone",
